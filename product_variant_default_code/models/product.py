@@ -223,27 +223,58 @@ class ProductProduct(models.Model):
         for rec in self:
             rec.manual_code = bool(rec.default_code)
 
+    # def _generate_default_code(self):
+    #     value_codes = self.product_tmpl_id.attribute_line_ids.value_ids.mapped("code")
+    #     if (not self.code_prefix and self.product_tmpl_id.is_automask()) or not all(
+    #         value_codes
+    #     ):
+    #         return None
+    #     elif not self.product_tmpl_id.reference_mask:
+    #         return None
+
+    #     else:
+    #         product_attrs = defaultdict(str)
+    #         reference_mask = ReferenceMask(self.product_tmpl_id.reference_mask)
+    #         main_lang = self.product_tmpl_id._guess_main_lang()
+    #         for attr in self.product_template_attribute_value_ids:
+    #             value = attr.product_attribute_value_id
+    #             attr_name = value.attribute_id.with_context(lang=main_lang).name
+    #             if value.attribute_id.code:
+    #                 product_attrs[attr_name] += value.attribute_id.code
+    #             if value.code:
+    #                 product_attrs[attr_name] += value.code
+    #         default_code = reference_mask.safe_substitute(product_attrs)
+    #         return default_code
+
+
     def _generate_default_code(self):
+        """
+        Same logic as the original method but WITHOUT the
+        'code_prefix is mandatory when automask' block.
+        """
         value_codes = self.product_tmpl_id.attribute_line_ids.value_ids.mapped("code")
-        if (not self.code_prefix and self.product_tmpl_id.is_automask()) or not all(
-            value_codes
-        ):
+
+        # ------ 1. only keep the real blocker we still want ------
+        if not all(value_codes):          # some attribute values have no code
             return None
-        elif not self.product_tmpl_id.reference_mask:
+        if not self.product_tmpl_id.reference_mask:
             return None
-        else:
-            product_attrs = defaultdict(str)
-            reference_mask = ReferenceMask(self.product_tmpl_id.reference_mask)
-            main_lang = self.product_tmpl_id._guess_main_lang()
-            for attr in self.product_template_attribute_value_ids:
-                value = attr.product_attribute_value_id
-                attr_name = value.attribute_id.with_context(lang=main_lang).name
-                if value.attribute_id.code:
-                    product_attrs[attr_name] += value.attribute_id.code
-                if value.code:
-                    product_attrs[attr_name] += value.code
-            default_code = reference_mask.safe_substitute(product_attrs)
-            return default_code
+        # --------------------------------------------------------
+
+        product_attrs = {}
+        reference_mask = self.env["ReferenceMask"](   # same helper class
+            self.product_tmpl_id.reference_mask
+        )
+        main_lang = self.product_tmpl_id._guess_main_lang()
+
+        for pav in self.product_template_attribute_value_ids:
+            value = pav.product_attribute_value_id
+            attr_name = value.attribute_id.with_context(lang=main_lang).name
+            product_attrs[attr_name] = \
+                (pav.attribute_id.code or "") + (value.code or "")
+
+        return reference_mask.safe_substitute(product_attrs)
+    
 
 
 class ProductAttribute(models.Model):
