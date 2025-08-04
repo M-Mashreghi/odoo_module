@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: Odoo Server 10.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2017-12-30 08:37+0000\n"
-"PO-Revision-Date: 2024-02-02 12:38+0000\n"
+"PO-Revision-Date: 2024-10-21 10:06+0000\n"
 "Last-Translator: Francesco Foresti <francesco.foresti@ooops404.com>\n"
 "Language-Team: Italian (https://www.transifex.com/oca/teams/23907/it/)\n"
 "Language: it\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.17\n"
+"X-Generator: Weblate 5.6.2\n"
 
 #. module: product_variant_default_code
 #: model:ir.model.fields,help:product_variant_default_code.field_product_product__code_prefix
@@ -33,6 +33,7 @@ msgid "Attribute Code"
 msgstr "Codice Attributo"
 
 #. module: product_variant_default_code
+#. odoo-python
 #: code:addons/product_variant_default_code/models/product.py:0
 #: model:ir.model.constraint,message:product_variant_default_code.constraint_product_attribute_number_uniq
 #, python-format
@@ -76,15 +77,7 @@ msgstr ""
 "predefinito (default_code) della variante."
 
 #. module: product_variant_default_code
-#: model:ir.model.fields,field_description:product_variant_default_code.field_product_attribute__display_name
-#: model:ir.model.fields,field_description:product_variant_default_code.field_product_attribute_value__display_name
-#: model:ir.model.fields,field_description:product_variant_default_code.field_product_product__display_name
-#: model:ir.model.fields,field_description:product_variant_default_code.field_product_template__display_name
-#: model:ir.model.fields,field_description:product_variant_default_code.field_res_config_settings__display_name
-msgid "Display Name"
-msgstr "Nome visualizzato"
-
-#. module: product_variant_default_code
+#. odoo-python
 #: code:addons/product_variant_default_code/models/product.py:0
 #, python-format
 msgid "Found unrecognized attribute name in \"Variant Reference Mask\""
@@ -93,42 +86,24 @@ msgstr ""
 "\""
 
 #. module: product_variant_default_code
-#: model:ir.model.fields,field_description:product_variant_default_code.field_product_attribute__id
-#: model:ir.model.fields,field_description:product_variant_default_code.field_product_attribute_value__id
-#: model:ir.model.fields,field_description:product_variant_default_code.field_product_product__id
-#: model:ir.model.fields,field_description:product_variant_default_code.field_product_template__id
-#: model:ir.model.fields,field_description:product_variant_default_code.field_res_config_settings__id
-msgid "ID"
-msgstr "ID"
-
-#. module: product_variant_default_code
 #: model:ir.model.fields,field_description:product_variant_default_code.field_product_product__default_code
 msgid "Internal Reference"
-msgstr "Riferimento interno"
-
-#. module: product_variant_default_code
-#: model:ir.model.fields,field_description:product_variant_default_code.field_product_attribute____last_update
-#: model:ir.model.fields,field_description:product_variant_default_code.field_product_attribute_value____last_update
-#: model:ir.model.fields,field_description:product_variant_default_code.field_product_product____last_update
-#: model:ir.model.fields,field_description:product_variant_default_code.field_product_template____last_update
-#: model:ir.model.fields,field_description:product_variant_default_code.field_res_config_settings____last_update
-msgid "Last Modified on"
-msgstr "Ultima modifica il"
+msgstr "Riferimento Interno"
 
 #. module: product_variant_default_code
 #: model:ir.model.fields,field_description:product_variant_default_code.field_product_product__manual_code
 msgid "Manual Reference"
-msgstr "Riferimento manuale"
+msgstr "Riferimento Manuale"
 
 #. module: product_variant_default_code
-#: model:ir.model,name:product_variant_default_code.model_product_product
+#: model:ir.model,name:product_variant_default_code.model_product_template
 msgid "Product"
 msgstr "Prodotto"
 
 #. module: product_variant_default_code
 #: model:ir.model,name:product_variant_default_code.model_product_attribute
 msgid "Product Attribute"
-msgstr "Attributo prodotto"
+msgstr "Attributo Prodotto"
 
 #. module: product_variant_default_code
 #: model:res.groups,name:product_variant_default_code.group_product_default_code_manual_mask
@@ -141,9 +116,9 @@ msgid "Product Default Code Manual Mask"
 msgstr "Maschera manuale codice predefinito prodotto"
 
 #. module: product_variant_default_code
-#: model:ir.model,name:product_variant_default_code.model_product_template
-msgid "Product Template"
-msgstr "Modello prodotto"
+#: model:ir.model,name:product_variant_default_code.model_product_product
+msgid "Product Variant"
+msgstr "Variante prodotto"
 
 #. module: product_variant_default_code
 #: model_terms:ir.ui.view,arch_db:product_variant_default_code.view_general_configuration
@@ -207,9 +182,9 @@ msgid ""
 "Set behaviour of codes. Default: Automask (depends on variant use: see Sales/"
 "Purchases configuration)"
 msgstr ""
-"Imposta i comportamenti dei codici. Predefinito: maschera automatica ("
-"dipende dall'uso delle varianti: vedi la configurazione in vendite o "
-"acquisti)"
+"Imposta i comportamenti dei codici. Predefinito: Maschera automatica "
+"(dipende dall'uso delle varianti: vedi la configurazione in Vendite o "
+"Acquisti)"
 
 #. module: product_variant_default_code
 #: model:ir.model.fields,field_description:product_variant_default_code.field_product_product__variant_default_code_error
@@ -227,6 +202,18 @@ msgstr "Maschera riferimento variante"
 #: model_terms:ir.ui.view,arch_db:product_variant_default_code.product_template_only_form_view
 msgid "[attribute3]-[attribute1]"
 msgstr "[attribute3]-[attribute1]"
+
+#~ msgid "Display Name"
+#~ msgstr "Nome visualizzato"
+
+#~ msgid "ID"
+#~ msgstr "ID"
+
+#~ msgid "Last Modified on"
+#~ msgstr "Ultima Modifica il"
+
+#~ msgid "Product Template"
+#~ msgstr "Modello prodotto"
 
 #~ msgid "product.attribute.value"
 #~ msgstr "product.attribute.value"

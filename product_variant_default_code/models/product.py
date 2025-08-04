@@ -11,7 +11,7 @@ import re
 from collections import defaultdict
 from string import Template
 
-from odoo import _, api, fields, models
+from odoo import api, fields, models
 from odoo.exceptions import UserError
 
 
@@ -29,7 +29,7 @@ def extract_token(s):
     return set(pattern.findall(s))
 
 
-def sanitize_reference_mask(product, mask):
+def sanitize_reference_mask(self, product, mask):
     main_lang = product._guess_main_lang()
     tokens = extract_token(mask)
     attribute_names = set()
@@ -37,7 +37,7 @@ def sanitize_reference_mask(product, mask):
         attribute_names.add(line.attribute_id.with_context(lang=main_lang).name)
     if not tokens.issubset(attribute_names):
         raise UserError(
-            _('Found unrecognized attribute name in "Variant ' 'Reference Mask"')
+            self.env._('Found unrecognized attribute name in "Variant Reference Mask"')
         )
 
 
@@ -82,7 +82,7 @@ class ProductTemplate(models.Model):
 
     def is_automask(self):
         return bool(
-            not self.user_has_groups(
+            not self.env.user.has_groups(
                 "product_variant_default_code.group_product_default_code_manual_mask"
             )
         )
@@ -146,27 +146,28 @@ class ProductTemplate(models.Model):
         main_lang = self._guess_main_lang()
         for line in self.attribute_line_ids:
             attribute_names.append(
-                "[{}]".format(line.attribute_id.with_context(lang=main_lang).name)
+                f"[{line.attribute_id.with_context(lang=main_lang).name}]"
             )
         default_mask = (self.code_prefix or "") + default_reference_separator.join(
             attribute_names
         )
         return default_mask
 
-    @api.model
-    def create(self, vals):
-        product = self.new(vals)
-        if (
-            not vals.get("reference_mask")
-            and product.attribute_line_ids
-            or not self.user_has_groups(
-                "product_variant_default_code.group_product_default_code_manual_mask"
-            )
-        ):
-            vals["reference_mask"] = product._get_default_mask()
-        elif vals.get("reference_mask"):
-            sanitize_reference_mask(product, vals["reference_mask"])
-        return super(ProductTemplate, self).create(vals)
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            product = self.new(vals)
+            if (
+                not vals.get("reference_mask")
+                and product.attribute_line_ids
+                or not self.env.user.has_groups(
+                    "product_variant_default_code.group_product_default_code_manual_mask"
+                )
+            ):
+                vals["reference_mask"] = product._get_default_mask()
+            elif vals.get("reference_mask"):
+                sanitize_reference_mask(self, product, vals["reference_mask"])
+        return super().create(vals_list)
 
     @api.model
     def _guess_main_lang(self):
@@ -185,12 +186,15 @@ class ProductTemplate(models.Model):
     )
     def _compute_default_code(self):
         super()._compute_default_code()
-        if self.env["ir.config_parameter"].get_param("prefix_as_default_code"):
+        if self.env["ir.config_parameter"].get_param(
+            "product_variant_default_code.prefix_as_default_code"
+        ):
             unique_variants = self.filtered(
                 lambda template: len(template.product_variant_ids) == 1
             )
             for template in self - unique_variants:
                 template.default_code = template.code_prefix
+        return True
 
 
 class ProductProduct(models.Model):
@@ -210,6 +214,7 @@ class ProductProduct(models.Model):
         "product_template_attribute_value_ids.product_attribute_value_id.code",
     )
     def _compute_default_code(self):
+        self.env.cr.flush()  # https://github.com/odoo/odoo/blob/16.0/odoo/models.py#L5592
         for rec in self:
             if not rec.manual_code:
                 rec.default_code = rec._generate_default_code()
@@ -220,16 +225,14 @@ class ProductProduct(models.Model):
 
     def _generate_default_code(self):
         value_codes = self.product_tmpl_id.attribute_line_ids.value_ids.mapped("code")
-        if (
-            (not self.code_prefix and self.product_tmpl_id.is_automask())
-            or not all(value_codes)
-            or not self.product_template_attribute_value_ids
+        if (not self.code_prefix and self.product_tmpl_id.is_automask()) or not all(
+            value_codes
         ):
+            return None
+        elif not self.product_tmpl_id.reference_mask:
             return None
         else:
             product_attrs = defaultdict(str)
-            if self.product_tmpl_id.reference_mask is False:
-                self.product_tmpl_id._compute_reference_mask()
             reference_mask = ReferenceMask(self.product_tmpl_id.reference_mask)
             main_lang = self.product_tmpl_id._guess_main_lang()
             for attr in self.product_template_attribute_value_ids:
@@ -251,7 +254,7 @@ class ProductAttribute(models.Model):
     )
 
     _sql_constraints = [
-        ("number_uniq", "unique(name)", _("Attribute Name must be unique!"))
+        ("number_uniq", "unique(name)", "Attribute Name must be unique!")
     ]
 
 
